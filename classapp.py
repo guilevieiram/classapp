@@ -8,42 +8,6 @@ import smtplib
 from email.message import EmailMessage
 import os
 
-# "get user" window
-def get_user(user_list):
-
-    '''
-    this part of the code is ugly. I am not proud of it but it does the job so who cares???
-    '''
-    user = []
-
-    def assign_user(event): 
-        user.append(drop_down.get())
-
-    user_tab_root = Tk()
-    user_tab_root.title("Who's playing?")
-
-    
-    canvas = Frame(user_tab_root, width = 300, height=150, bg='white')
-    canvas.grid(rowspan=3, row=0)
-
-    question = Label(user_tab_root, text='Select user from list:', font='Nunito' + 'bold' + '20', bg='white', fg = '#eb4034')
-    question.grid(column=0, row=0, padx=20, pady=10)
-
-    drop_down = ttk.Combobox(user_tab_root, values = user_list)
-    drop_down.grid(column=0, row=1, padx=20, pady=10)   
-
-    drop_down.bind("<<ComboboxSelected>>", assign_user)
-    
-    exit_button = Button(user_tab_root, text = 'Continue', command=lambda :user_tab_root.destroy(),
-                            font=('Nunito',10), bg='#eb4034', fg='white',
-                                height=1, width=15, borderwidth = 0)
-
-    exit_button.grid(column=0, row=2, padx=20, pady=10)
-
-    user_tab_root.mainloop()
-
-    return user[0]
-
 
 class App():
 
@@ -57,6 +21,7 @@ class App():
         self.color_light = '#f28c85'
         self.connection = sqlite3.connect(db_name)
         self.table = ''
+        self.db = db_name
 
         self.user = None
         self.user_list = None
@@ -69,7 +34,7 @@ class App():
         self.tech_btn = {}
 
 
-# public backend methods
+    # public backend methods
     def import_data(self, folder_name='data'):
         self.techniques_df = pd.read_pickle(folder_name + '/techniques')
         self.methods_df = pd.read_pickle(folder_name + '/methods')
@@ -118,7 +83,7 @@ class App():
         self.method_id = start
 
 
-# public frontend methods
+    # public frontend methods
     def create_header(self):
         self.header = Frame(self.root, width = self.width, height=120, bg='white')
         self.header.grid(columnspan=10, rowspan=2, row=0)
@@ -210,7 +175,7 @@ class App():
         send_btn.grid(column=1, row=row, columnspan=2)
 
 
-# private backend methods
+    # private backend methods
     def _show_table(self, table_name='class_methods'):
         sql = "SELECT * FROM " + table_name
         df = pd.read_sql_query(sql, self.connection)
@@ -241,7 +206,7 @@ class App():
         self.connection.commit()
 
 
-# private frontend methods
+    # private frontend methods
     def _create_description_column(self, column=0, row=4):
         description =  self.methods_df.at[self.method_id, 'description']
 
@@ -344,7 +309,7 @@ class App():
         body += f'Kind regards,\n\nPython Gui.'
 
         #getting attachment
-        with open('classapp.db', 'rb') as f:
+        with open(self.db, 'rb') as f:
             file_data = f.read()
             file_name = f.name
 
@@ -365,6 +330,42 @@ class App():
         # exiting app after email was sent
         self._exit()
 
+# "get user" window
+def get_user(user_list):
+
+    '''
+    this part of the code is ugly. I am not proud of it but it does the job so who cares???
+    '''
+    user = []
+
+    def assign_user(event): 
+        user.append(drop_down.get())
+
+    user_tab_root = Tk()
+    user_tab_root.title("Who's playing?")
+
+    
+    canvas = Frame(user_tab_root, width = 300, height=150, bg='white')
+    canvas.grid(rowspan=3, row=0)
+
+    question = Label(user_tab_root, text='Select user from list:', font='Nunito' + 'bold' + '20', bg='white', fg = '#eb4034')
+    question.grid(column=0, row=0, padx=20, pady=10)
+
+    drop_down = ttk.Combobox(user_tab_root, values = user_list)
+    drop_down.grid(column=0, row=1, padx=20, pady=10)   
+
+    drop_down.bind("<<ComboboxSelected>>", assign_user)
+    
+    exit_button = Button(user_tab_root, text = 'Continue', command=lambda :user_tab_root.destroy(),
+                            font=('Nunito',10), bg='#eb4034', fg='white',
+                                height=1, width=15, borderwidth = 0)
+
+    exit_button.grid(column=0, row=2, padx=20, pady=10)
+
+    user_tab_root.mainloop()
+
+    return user[0]
+
 
 # Main Loop
 if __name__ == "__main__":
@@ -375,7 +376,7 @@ if __name__ == "__main__":
 
     root = Tk()
     
-    classapp = App(root, 'classapp.db')
+    classapp = App(root, 'data.db')
 
     # DB methods
     classapp.import_data(folder_name='data')
