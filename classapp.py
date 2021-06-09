@@ -4,7 +4,9 @@ from PIL import Image, ImageTk
 import pandas as pd
 import numpy as np
 import sqlite3
-import re
+import smtplib
+from email.message import EmailMessage
+import os
 
 # "get user" window
 def get_user(user_list):
@@ -67,7 +69,7 @@ class App():
         self.tech_btn = {}
 
 
-# public DB methods
+# public backend methods
     def import_data(self, folder_name='data'):
         self.techniques_df = pd.read_pickle(folder_name + '/techniques')
         self.methods_df = pd.read_pickle(folder_name + '/methods')
@@ -100,7 +102,6 @@ class App():
         sql += " WHERE user == '" + self.user + "'"
         c.execute(sql)
         number_of_lines = (c.fetchall())[0][0]
-        print("number of lines", number_of_lines)
 
         if number_of_lines == 0:
             index = self.user_list.index(self.user)
@@ -117,12 +118,12 @@ class App():
         self.method_id = start
 
 
-# public design methods
+# public frontend methods
     def create_header(self):
         self.header = Frame(self.root, width = self.width, height=120, bg='white')
         self.header.grid(columnspan=10, rowspan=2, row=0)
 
-        path = r'cuukin_icon.png'
+        path = r'data/cuukin_icon.png'
         self._create_logo(path)
 
         logo_text = Label(self.root, text='Cuukin', font = (self.font,24, "bold"), fg = self.color , bg = 'white')
@@ -184,7 +185,7 @@ class App():
         exit_btn = Button(self.root, textvariable=exit_text, font=(self.font,10), bg=self.color, fg='white',
                                 height=1, width=15, borderwidth = 0,
                                 command=lambda : self._exit())
-        exit_text.set("Submit and Exit")
+        exit_text.set("Save and Exit")
         exit_btn.grid(column=0, row=row)
 
         next_text =  StringVar()
@@ -201,8 +202,15 @@ class App():
         prev_text.set("Previous")
         prev_btn.grid(column=8, row=row)
 
+        send_text =  StringVar()
+        send_btn = Button(self.root, textvariable=send_text, font=(self.font,10), bg=self.color, fg='white',
+                                height=1, width=15, borderwidth = 0,
+                                command=lambda : self._send_result())
+        send_text.set("Send results to Gui")
+        send_btn.grid(column=1, row=row, columnspan=2)
 
-# private DB methods
+
+# private backend methods
     def _show_table(self, table_name='class_methods'):
         sql = "SELECT * FROM " + table_name
         df = pd.read_sql_query(sql, self.connection)
@@ -233,11 +241,11 @@ class App():
         self.connection.commit()
 
 
-# private design methods
+# private frontend methods
     def _create_description_column(self, column=0, row=4):
         description =  self.methods_df.at[self.method_id, 'description']
 
-        self.description_window = Text(self.root, font=(self.font, 12), width=25, height=15, borderwidth = 0, wrap=WORD)
+        self.description_window = Text(self.root, font=(self.font, 12), width=30, height=15, borderwidth = 0, wrap=WORD)
         self.description_window.insert(1.0,  description)
         self.description_window.grid(column = column, row = row, columnspan=2, rowspan = 10, padx=20, sticky=W)
 
@@ -309,7 +317,7 @@ class App():
 
 # buttons actions methods
     def _exit(self):
-        self._show_table()
+        #self._show_table()
         self._close_connection()
         self.root.destroy()
 
@@ -325,11 +333,43 @@ class App():
         self.badge = badge
         self._update_techniques_list()
 
+    def _send_result(self):
+
+        #setup parameters for email
+        email_password = os.environ.get('EMAIL_PASSWORD_PYTHON')
+        email_address = os.environ.get('EMAIL_USER')
+
+        subject = f'Classapp Data Base [{self.user}]'
+        body = f'Here is the classification DB from {self.user}.\n\n'
+        body += f'Kind regards,\n\nPython Gui.'
+
+        #getting attachment
+        with open('classapp.db', 'rb') as f:
+            file_data = f.read()
+            file_name = f.name
+
+        #setting up message
+        message = EmailMessage()
+        message['Subject'] = subject
+        message['From'] = email_address
+        message['To'] = email_address
+
+        message.set_content(body)
+        message.add_attachment(file_data, maintype='application', subtype='octec-stream', filename=file_name)
+        
+        #login and send
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+            smtp.login(email_address, email_password)
+            smtp.send_message(message)
+
+        # exiting app after email was sent
+        self._exit()
+
 
 # Main Loop
 if __name__ == "__main__":
 
-    user_list = ['GV', 'BP', 'CP']
+    user_list = ['GV', 'EM', 'FR',  'HC', 'NA', 'RC', 'WZ', 'JF', 'MG']
 
     user = get_user(user_list)
 
