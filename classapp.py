@@ -8,6 +8,9 @@ import smtplib
 from email.message import EmailMessage
 import os
 
+'''
+this is a git test to figure out things
+'''
 
 class App():
 
