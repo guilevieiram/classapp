@@ -104,12 +104,12 @@ class App():
         self.recipe_bar.grid(columnspan=10, rowspan=1, row=2)
 
         recipe_text = Label(self.root, text='Recipe:', font = (self.font,14, 'bold'), fg = self.color , bg = 'white')
-        recipe_text.grid(column=0, row=2)
+        recipe_text.grid(column=0,  row=2)
 
         self._recipe_name = StringVar()
         self._recipe_name.set(recipe_name)
         recipe_name = Label(self.root, textvariable=self._recipe_name, font = (self.font,12), bg = 'white')
-        recipe_name.grid(column=1, row=2, columnspan= 4)
+        recipe_name.grid(column=1, row=2, columnspan= 6, sticky=W)
 
         method_id_text = Label(self.root, text='Method Id:', font = (self.font,14, 'bold'), fg = self.color , bg = 'white')
         method_id_text.grid(column=8, row=2, columnspan =2)
