@@ -8,10 +8,6 @@ import smtplib
 from email.message import EmailMessage
 import os
 
-'''
-this is a git test to figure out things
-'''
-
 class App():
 
     def __init__(self, root, db_name):
@@ -73,7 +69,7 @@ class App():
 
         if number_of_lines == 0:
             index = self.user_list.index(self.user)
-            start = 200 * index
+            start = 500 * index
         else:
             sql = "SELECT method_id FROM " + self.table
             sql += " WHERE user == '" + self.user + "'"
@@ -373,7 +369,7 @@ def get_user(user_list):
 # Main Loop
 if __name__ == "__main__":
 
-    user_list = ['GV', 'EM', 'FR',  'HC', 'NA', 'RC', 'WZ', 'JF', 'MG']
+    user_list = ['GV', 'NA', 'RC', 'WZ', 'EM', 'FR', 'HC', 'JF', 'MG']
 
     user = get_user(user_list)
 
